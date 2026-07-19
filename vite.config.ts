@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  root: 'src', // Compilation root
   build: {
-    outDir: 'docs', // Build directly to './docs' for Github Pages
+    outDir: '../dist', // Build destination relative to src root
     emptyOutDir: true,
   },
-  base: './', // Use relative path for Github Pages static serving
+  base: './', // Relative asset paths
 });

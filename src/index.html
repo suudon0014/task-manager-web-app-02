@@ -4,11 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>タスク管理 (TaskChute風)</title>
+  <link rel="stylesheet" href="./style.css">
   <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- SortableJS CDN (or loaded via script module, but we will import it in main.ts if possible, or declare / load via script. Let's load via npm package in main.ts since we are using bundler, but having global fallback or bundler resolution is great) -->
-  <script type="module" crossorigin src="./assets/index-99yLUVoQ.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-D7jpPdZE.css">
 </head>
 <body>
   <div class="app-container">
@@ -146,5 +145,6 @@
     </div>
   </div>
 
+  <script type="module" src="./main.ts"></script>
 </body>
 </html>
