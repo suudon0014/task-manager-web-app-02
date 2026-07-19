@@ -1,0 +1,20 @@
+{
+  "name": "task-manager-web-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build && rm -f index.html && rm -rf assets docs && mkdir -p docs && cp -r dist/* . && cp -r dist/* docs/",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.4",
+    "sortablejs": "^1.15.2"
+  },
+  "devDependencies": {
+    "@types/sortablejs": "^1.15.8",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
+  }
+}

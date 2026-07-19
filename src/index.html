@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タスク管理 (TaskChute風)</title>
+  <link rel="stylesheet" href="./style.css">
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- SortableJS CDN (or loaded via script module, but we will import it in main.ts if possible, or declare / load via script. Let's load via npm package in main.ts since we are using bundler, but having global fallback or bundler resolution is great) -->
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <h1><i class="fa-solid fa-list-check"></i> TaskChute Web</h1>
+      <div id="user-info" class="user-info"></div>
+      <button id="btn-logout" class="btn btn-secondary" style="display: none;">ログアウト</button>
+    </header>
+
+    <!-- 1. 認証セクション -->
+    <section id="auth-section" class="auth-card">
+      <h2>アカウント登録 / ログイン</h2>
+      <div class="form-group">
+        <label for="auth-email">メールアドレス</label>
+        <input type="email" id="auth-email" placeholder="example@example.com" required />
+      </div>
+      <div class="form-group">
+        <label for="auth-password">パスワード</label>
+        <input type="password" id="auth-password" placeholder="パスワードを入力してください" required />
+      </div>
+      <div class="auth-buttons">
+        <button id="btn-login" class="btn btn-primary">ログイン</button>
+        <button id="btn-signup" class="btn btn-secondary">新規アカウント登録</button>
+      </div>
+    </section>
+
+    <!-- 2. タスク管理セクション -->
+    <section id="task-section" style="display: none;">
+      <!-- 日付ナビゲーション -->
+      <div class="date-navigator">
+        <button id="btn-prev-day" class="btn btn-icon"><i class="fas fa-chevron-left"></i> 前日</button>
+        <div class="date-display-container">
+          <span id="current-date-display"></span>
+          <button id="btn-calendar" class="btn btn-icon"><i class="fas fa-calendar-alt"></i></button>
+          <input type="date" id="date-picker" style="display: none;" />
+        </div>
+        <button id="btn-next-day" class="btn btn-icon">翌日 <i class="fas fa-chevron-right"></i></button>
+      </div>
+
+      <!-- 新規タスクフォーム -->
+      <form id="task-form" class="task-form">
+        <input type="text" id="task-title" placeholder="新しいタスクを入力..." required />
+        <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> 追加</button>
+      </form>
+
+      <!-- タスク一覧リスト -->
+      <ul id="task-list" class="task-list"></ul>
+    </section>
+  </div>
+
+  <!-- タスク詳細編集モーダル -->
+  <div id="edit-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>タスク詳細の編集</h3>
+        <button class="btn-close btn-cancel"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="edit-task-form">
+        <input type="hidden" id="edit-id" />
+        <div class="form-group">
+          <label for="edit-title">タイトル</label>
+          <input type="text" id="edit-title" required />
+        </div>
+        <div class="form-group">
+          <label for="edit-scheduled-at">実施日</label>
+          <input type="date" id="edit-scheduled-at" required />
+        </div>
+        <div class="form-group">
+          <label for="edit-note">メモ (ノート)</label>
+          <textarea id="edit-note" rows="3" placeholder="タスクのメモや詳細..."></textarea>
+        </div>
+
+        <!-- 追加フィールド (スキーマ準拠) -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-estimated-duration">見積もり時間 (分)</label>
+            <input type="number" id="edit-estimated-duration" min="0" value="0" />
+          </div>
+          <div class="form-group">
+            <label for="edit-status">ステータス</label>
+            <select id="edit-status">
+              <option value="unstarted">未着手 (unstarted)</option>
+              <option value="started">着手中 (started)</option>
+              <option value="completed">完了 (completed)</option>
+              <option value="skipped">スキップ (skipped)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-is-planned">計画内タスク</label>
+            <select id="edit-is-planned">
+              <option value="true">計画内 (Planned)</option>
+              <option value="false">計画外 (Unplanned)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-skip-reason">スキップ理由</label>
+            <input type="text" id="edit-skip-reason" placeholder="スキップした場合の理由" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-satisfaction-rating">満足度 (1-5)</label>
+            <select id="edit-satisfaction-rating">
+              <option value="">未評価</option>
+              <option value="1">1 (不満)</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5 (大変満足)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 外部キーやその他の情報（非表示入力として保持） -->
+        <input type="hidden" id="edit-project-id" />
+        <input type="hidden" id="edit-mode-id" />
+        <input type="hidden" id="edit-tag-ids" />
+        <input type="hidden" id="edit-routine-id" />
+
+        <div class="modal-timestamps">
+          <div>作成日時: <span id="display-created-at">-</span></div>
+          <div>更新日時: <span id="display-updated-at">-</span></div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-cancel">キャンセル</button>
+          <button type="button" id="btn-delete-task" class="btn btn-danger">削除</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>
